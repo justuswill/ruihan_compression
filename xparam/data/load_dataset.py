@@ -349,6 +349,11 @@ def load_dataset(data_config):
         transforms = trans.Compose(transforms)
         train = IMG(os.path.join(data_path, "artbench/expressionism_lmdb/output"), transforms)
         val = IMG(os.path.join(data_path, "artbench/expressionism_lmdb/output"), transforms)
+    elif dataset_name == "imagenet64":
+        from xparam.data_loader import get_data_loaders
+        train_dl, val_dl = get_data_loaders()
+        train = train_dl.dataset
+        val = val_dl.dataset
     else:
         raise Exception("Dataset name not found.")
 

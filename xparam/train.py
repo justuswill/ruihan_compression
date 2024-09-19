@@ -55,18 +55,55 @@ parser.add_argument("--tensorboard_root", type=str, default="/extra/ucibdl0/ruih
 parser.add_argument("--ae_path", type=str, default="/extra/ucibdl0/ruihan/params_cdc_ldm_ae/ae_zc3_dm3_bd128_b1e-06_lossl2_final.pth", help="path to ae model")
 parser.add_argument("--use_aux_loss_weight_schedule", action="store_true", help="if use aux loss weight schedule")
 
+# Manual override
 config = parser.parse_args()
-
-
+config.n_steps = 100000
+config.data_name = "imagenet64"
+config.data_root = "../datasets"
+config.params_root = '../checkpoints'
+config.tensorboard_root = '../checkpoints/tensorboard'
+# data config
 data_config = {
-    "dataset_name": config.data_name,
-    "data_path": config.data_root,
+    "dataset_name": "imagenet64",
+    "data_path": "../datasets/imagenet64",
     "sequence_length": 1,
-    "img_size": 256,
+    "img_size": 64,
     "img_channel": 3,
     "add_noise": False,
     "img_hz_flip": False,
 }
+# Load
+config.load_model = True
+config.ckpt = '../checkpoints/image-l2-use_weight5-imagenet64-d64-t8193-b5e-06-x-cosine-01-float32-aux0.0_2.pt'
+config.batch_size = 4
+config.n_workers = 0
+# ResNet
+config.embed_dim = 64
+config.context_dim_mults = [1, 2, 3, 4]
+config.reverse_context_dim_mults = [4, 3, 2, 1]
+config.hyper_dim_mults = [4, 4, 4]
+config.context_channels = 64
+# Unet
+config.dim_mults = [1, 2, 3, 4, 5, 6]
+config.embd_type = '01'
+# Diffusion
+config.ae_path = ""
+config.iteration_step = 8193
+config.loss_type = 'l2'
+config.pred_mode = 'x'
+config.aux_loss_type = 'lpips'
+config.var_schedule = 'cosine'
+config.use_weighted_loss = True
+config.weight_clip = 5
+config.use_aux_loss_weight_schedule = False
+config.sample_steps = 65
+
+# Changed for experiment
+# config.beta = 0.0128
+# config.beta = 0.0005
+# config.beta = 0.000005
+config.beta = 1e-8
+config.aux_weight = 0.0
 
 model_name = (
     f"{'latent' if len(config.ae_path)>0 else 'image'}-{config.loss_type}-{'use_weight'+str(config.weight_clip) if config.use_weighted_loss else 'no_weight'}-{data_config['dataset_name']}"
@@ -90,7 +127,6 @@ def main():
         pin_memory=False,
         num_workers=config.n_workers,
     )
-
 
     context_model = ResnetCompressor(
         dim=config.embed_dim,
@@ -159,7 +195,7 @@ def main():
 
     if config.load_model:
         print('loaded')
-        trainer.load(idx=0, load_step=config.load_step)
+        trainer.load(idx=2, load_step=config.load_step, ckpt=config.ckpt)
 
     trainer.train()
 

@@ -81,11 +81,14 @@ class Trainer(object):
         idx = (self.step // self.save_and_sample_every) % 3
         torch.save(data, str(self.results_folder / f"{self.model_name}_{idx}.pt"))
 
-    def load(self, idx=0, load_step=True):
-        data = torch.load(
-            str(self.results_folder / f"{self.model_name}_{idx}.pt"),
-            map_location=lambda storage, loc: storage,
-        )
+    def load(self, idx=0, load_step=True, ckpt=None):
+        if ckpt is not None:
+            data = torch.load(ckpt, map_location=lambda storage, loc: storage)
+        else:
+            data = torch.load(
+                str(self.results_folder / f"{self.model_name}_{idx}.pt"),
+                map_location=lambda storage, loc: storage,
+            )
         all_params = data["model"].keys()
         poped_params = []
         for key in all_params:

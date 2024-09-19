@@ -27,7 +27,8 @@ def load_data(data_config, batch_size, num_workers=4, pin_memory=True, distribut
         train = DataLoader(
             train,
             batch_size=batch_size,
-            shuffle=False if distributed else True,
+            # shuffle=False if distributed else True,
+            shuffle=False,
             collate_fn=train_transposed_collate,
             num_workers=num_workers,
             pin_memory=pin_memory,
